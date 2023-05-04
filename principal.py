@@ -39,13 +39,78 @@ SONIC_IMG = pygame.transform.scale(SONIC_IMG, (LARG_PERS,ALTU_PERS))
 KNUCKLES_IMG = pygame.image.load(os.path.join('sprites', 'knuckles.png'))
 KNUCKLES_IMG = pygame.transform.flip(pygame.transform.scale(KNUCKLES_IMG, (LARG_PERS,ALTU_PERS)), True, False)
 
-def draw_janela(vermelho,azul,texto_formatado, background):
+class Player(pygame.sprite.Sprite):
+    COR = (255, 0, 0)
+
+    def __init__(self, x, y, largura, altura):
+        self.rect = pygame.Rect(x, y, largura, altura)
+        self.x_vel = 0
+        self.y_vel = 0
+        self.mask = None
+        self.direcao = "esquerda"
+        self.animacao_cont = 0
+
+    def movimento(self, dx, dy):
+        self.rect.x += dx
+        self.rect.y += dy
+    
+    def esquerda(self, vel):
+        self.x_vel = -vel
+        if self.direcao != "esquerda":
+            self.direcao = "esquerda"
+            self.animacao_cont = 0
+
+    def direita(self, vel):
+        self.x_vel = vel
+        if self.direcao != "direita":
+            self.direcao = "direita"
+            self.animacao_cont = 0
+
+    def cima(self, vel):
+        self.y_vel = -vel
+        if self.direcao != "cima":
+            self.direcao = "cima"
+            self.animacao_cont = 0
+    
+    def baixo(self, vel):
+        self.y_vel = +vel
+        if self.direcao != "baixo":
+            self.direcao = "baixo"
+            self.animacao_cont = 0
+    
+    def loop(self, fps):
+        self.movimento(self.x_vel, self.y_vel)
+
+    def draw(self, janela):
+        pygame.draw.rect(janela, self.COR, self.rect)
+        
+
+def draw_janela(vermelho,azul,texto_formatado, background, player):
+
     JANELA.fill(PRETO)
     JANELA.blit(background, (0,0))
-    JANELA.blit(KNUCKLES_IMG, (vermelho.x,vermelho.y))
-    JANELA.blit(SONIC_IMG, (azul.x,azul.y))
+    #JANELA.blit(KNUCKLES_IMG, (vermelho.x,vermelho.y))
+    #JANELA.blit(SONIC_IMG, (azul.x,azul.y))
     JANELA.blit(texto_formatado, (450, 40))
+
+    player.draw(JANELA)
+
     pygame.display.update()
+
+def mover(player):
+    keys = pygame.key.get_pressed()
+
+    player.x_vel = 0
+    player.y_vel = 0
+
+    if keys[pygame.K_a]:
+        player.esquerda(VEL)
+    if keys[pygame.K_d]:
+        player.direita(VEL)
+    if keys[pygame.K_w]:
+        player.cima(VEL)
+    if keys[pygame.K_s]:
+        player.baixo(VEL)
 
 def vermelho_mov(keys_pressed,vermelho):
     if keys_pressed[pygame.K_a] and vermelho.x - VEL > 0: #ESQUERDA
@@ -76,6 +141,8 @@ def main():
     pontos = 0
     fonte = pygame.font.SysFont('courier new', 20, False, False)
 
+    player = Player(x, y, LARG_PERS, ALTU_PERS)
+
 
     while rodar:
         clock.tick(FPS)
@@ -92,7 +159,10 @@ def main():
         vermelho_mov(keys_pressed,vermelho)
         azul_mov(keys_pressed,azul)
         
-        draw_janela(vermelho,azul,texto_formatado,background)
+        player.loop(FPS)
+        mover(player)
+
+        draw_janela(vermelho,azul,texto_formatado,background, player)
 
         if vermelho.colliderect(azul):
             pontos += 1
