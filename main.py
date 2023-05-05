@@ -179,6 +179,7 @@ def main():
     rodar = True
     pontos = 0
     vida = 3
+    direcao ='direita'
 
     fonte = pygame.font.SysFont('courier new', 20, False, False)
 
@@ -202,7 +203,6 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 rodar = False
-        
         player.loop(FPS)
 
         mover(player)
@@ -211,19 +211,31 @@ def main():
         
         todas_as_sprites.update()
 
-        if pygame.sprite.spritecollide(player, todas_as_sprites, True):
-            todas_as_sprites.x = 100000
+        if direcao == 'direita':
+            objeto.rect.x += 6
+        else:
+            objeto.rect.x -= 6
+
+        if objeto.rect.x >= 600:
+            direcao = 'esquerda'
+        if objeto.rect.x <= 0:
+            direcao = 'direita'
+ 
+
+        if player.rect.colliderect(anelgira):
             pontos += 1
             som_colisao.play()
+            anelgira.rect.x = randint(40, 600)
+            anelgira.rect.y = randint(50, 500)
 
         if player.rect.colliderect(objeto):
-            objeto.rect.x = 1000
             vida -= 1
             som_colisao.play()
             objeto.rect.x = randint(40, 600)
             objeto.rect.y = randint(50, 500)
             if vida <= 0:
                 pygame.quit()
+        
 
 
     pygame.quit()
