@@ -21,10 +21,10 @@ JANELA = pygame.display.set_mode((LARGURA, ALTURA))
 pygame.display.set_caption(TITULO)
 
 pygame.mixer.music.set_volume(0.25)
-musica_de_fundo =  pygame.mixer.music.load('soundtrack\BoxCat Games - CPU Talk.mp3')
+musica_de_fundo =  pygame.mixer.music.load('soundtrack/BoxCat.mp3')
 pygame.mixer.music.play(-1)
 
-som_colisao = pygame.mixer.Sound('soundtrack\smw_1-up.wav')
+som_colisao = pygame.mixer.Sound('soundtrack/smw_1-up.wav')
 som_colisao.set_volume(1)
 
 x = LARGURA / 2
@@ -41,6 +41,7 @@ KNUCKLES_IMG = pygame.transform.flip(pygame.transform.scale(KNUCKLES_IMG, (LARG_
 
 
 class Player(pygame.sprite.Sprite):
+
     COR = (255, 0, 0)
     
     SONIC_IMG = pygame.image.load(os.path.join('sprites', 'sonic.png'))
@@ -89,35 +90,48 @@ class Player(pygame.sprite.Sprite):
         self.sprite = self.SPRITE
         janela.blit(self.sprite, (self.rect.x,self.rect.y))
 
-class Objeto(pygame.sprite.Sprite):
+class Anel(pygame.sprite.Sprite):
 
-    ANEL = pygame.image.load(os.path.join('sprites','aneis', 'ANEL1.png'))
-    SPRITE = pygame.transform.scale(ANEL, (30,30))
-
-    def __init__(self, x, y, largura, altura, nome=None):
-        super().__init__()
-        self.imagem = pygame.Surface((largura,altura), pygame.SRCALPHA)
+    def __init__(self, x, y, largura, altura):
+        pygame.sprite.Sprite.__init__(self)
+        self.sprites = []
+        self.sprites.append(pygame.image.load('sprites/aneis/ANEL1.png'))
+        self.sprites.append(pygame.image.load('sprites/aneis/ANEL2.png'))
+        self.sprites.append(pygame.image.load('sprites/aneis/ANEL3.png'))
+        self.sprites.append(pygame.image.load('sprites/aneis/ANEL4.png'))
+        self.sprites.append(pygame.image.load('sprites/aneis/ANEL5.png'))
+        self.sprites.append(pygame.image.load('sprites/aneis/ANEL6.png'))
+        self.sprites.append(pygame.image.load('sprites/aneis/ANEL7.png'))
+        self.sprites.append(pygame.image.load('sprites/aneis/ANEL8.png'))
+        self.sprites.append(pygame.image.load('sprites/aneis/ANEL9.png'))
+        self.sprites.append(pygame.image.load('sprites/aneis/ANEL10.png'))
+        self.atual = 0
+        self.image = self.sprites[self.atual]
+        self.rect=self.image.get_rect()
         self.rect = pygame.Rect(x, y, largura, altura)
-        self.largura = largura
-        self.altura = altura
-        self.nome = nome
-        self.image_files = ('ANEL1.png','ANEL2.png')
+        self.image = pygame.transform.scale(self.image, (33, 33))
+    
 
-    def draw(self, janela):
-        self.sprite = self.SPRITE
-        janela.blit(self.sprite, (self.rect.x, self.rect.y))
+    def update(self):
+        self.atual+=1
+        if self.atual>=len(self.sprites):
+           self.atual=0
+        self.image=self.sprites[self.atual]
+        self.image = pygame.transform.scale(self.image, (33, 33))
+    
+todas_as_sprites=pygame.sprite.Group()
+anelgira=Anel(x_azul, y_azul, 40, 40)
+todas_as_sprites.add(anelgira)
 
-    def update(self, collided):
-        if collided:
-            self.kill()
-
-def draw_janela(texto_formatado, background, player, objeto):
+        
+def draw_janela(texto_formatado, background, player, todas_as_sprites):
 
     JANELA.fill(PRETO)
     JANELA.blit(background, (0,0))
     JANELA.blit(texto_formatado, (450, 40))
-    objeto.draw(JANELA)
+    #objeto.draw(JANELA)
     player.draw(JANELA)
+    todas_as_sprites.draw(JANELA)
 
     pygame.display.update()
 
@@ -149,15 +163,17 @@ def main():
     pontos = 0
     fonte = pygame.font.SysFont('courier new', 20, False, False)
 
-    player = Player(x, y, LARG_PERS, ALTU_PERS)
+    player = Player(x, y, LARG_PERS,ALTU_PERS )
 
-    anel = Objeto(x_azul, y_azul, LARG_PERS, ALTU_PERS)
+    #anel = Objeto(x_azul, y_azul, LARG_PERS, ALTU_PERS)
+
+
 
     while rodar:
         clock.tick(FPS)
         background = pygame.image.load('sprites/background_teste.png')
         background = pygame.transform.scale(background,(LARGURA,ALTURA))
-        mensagem = f'PONTOS: {pontos}'
+        mensagem = f'ANEIS: {pontos}'
         texto_formatado = fonte.render(mensagem, False, (255, 255, 255))
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -167,13 +183,14 @@ def main():
 
         mover(player)
 
-        draw_janela(texto_formatado, background, player, anel)
+        draw_janela(texto_formatado, background, player, todas_as_sprites)
+        
+        todas_as_sprites.update()
 
-        if player.rect.colliderect(anel):
-            anel.rect.x = 100000
+        if pygame.sprite.spritecollide(player, todas_as_sprites, True):
+            todas_as_sprites.x = 100000
             pontos += 1
             som_colisao.play()
-        update_rect = background.blit(background, anel, anel)
 
     pygame.quit()
 
