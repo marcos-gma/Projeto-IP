@@ -29,9 +29,11 @@ som_colisao.set_volume(1)
 
 x = LARGURA / 2
 y = ALTURA / 2
+y=305
 
 x_azul = randint(40, 600)
 y_azul = 320
+
 
 SONIC_IMG = pygame.image.load(os.path.join('sprites', 'sonic.png'))
 SONIC_IMG = pygame.transform.scale(SONIC_IMG, (LARG_PERS,ALTU_PERS))
@@ -218,7 +220,109 @@ def main():
             objeto.rect.x -= 4
 
         if objeto.rect.x >= 600:
-            direcao = 'esquerda'
+            direcao = 'esquerda'import pygame
+2
+import os
+3
+from pygame.locals import *
+4
+from random import randint
+5
+​
+6
+#constantes
+7
+​
+8
+LARGURA = 640   
+9
+ALTURA = 580
+10
+TITULO = 'THE FORBIDDEN GAME'
+11
+FPS = 30
+12
+PRETO = (0, 0, 0)
+13
+BRANCO = (255,255,255)
+14
+LARG_PERS = 40
+15
+ALTU_PERS = 50
+16
+VEL = 10
+17
+​
+18
+pygame.init()
+19
+​
+20
+JANELA = pygame.display.set_mode((LARGURA, ALTURA))
+21
+pygame.display.set_caption(TITULO)
+22
+​
+23
+pygame.mixer.music.set_volume(0.25)
+24
+musica_de_fundo =  pygame.mixer.music.load('soundtrack/BoxCat.mp3')
+25
+pygame.mixer.music.play(-1)
+26
+​
+27
+som_colisao = pygame.mixer.Sound('soundtrack/smw_1-up.wav')
+28
+som_colisao.set_volume(1)
+29
+​
+30
+x = LARGURA / 2
+31
+y = ALTURA / 2
+32
+​
+33
+x_azul = randint(40, 600)
+34
+y_azul = 320
+35
+​
+36
+SONIC_IMG = pygame.image.load(os.path.join('sprites', 'sonic.png'))
+37
+SONIC_IMG = pygame.transform.scale(SONIC_IMG, (LARG_PERS,ALTU_PERS))
+38
+​
+39
+KNUCKLES_IMG = pygame.image.load(os.path.join('sprites', 'knuckles.png'))
+40
+KNUCKLES_IMG = pygame.transform.flip(pygame.transform.scale(KNUCKLES_IMG, (LARG_PERS,ALTU_PERS)), True, False)
+41
+​
+42
+​
+43
+class Player(pygame.sprite.Sprite):
+44
+​
+45
+    COR = (255, 0, 0)
+46
+    
+47
+    SONIC_IMG = pygame.image.load(os.path.join('sprites', 'sonic.png'))
+48
+    SPRITE = pygame.transform.scale(SONIC_IMG, (LARG_PERS,ALTU_PERS))
+49
+​
+50
+    def __init__(self, x, y, largura, altura):
+51
+        super().__init__()
+52
+        self.rect = pygame.Rect(x, y, largura, altura)
         if objeto.rect.x <= 0:
             direcao = 'direita'
  
