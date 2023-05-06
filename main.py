@@ -164,7 +164,7 @@ def mover(player):
         player.direita(VEL)
     if keys[pygame.K_w] and player.rect.y > 0:
         player.cima(VEL)
-    if keys[pygame.K_s] and player.rect.y < 530:
+    if keys[pygame.K_s] and player.rect.y < 305:
         player.baixo(VEL)
 
 '''def colisao(player, objeto):
