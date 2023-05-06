@@ -31,7 +31,7 @@ x = LARGURA / 2
 y = ALTURA / 2
 
 x_azul = randint(40, 600)
-y_azul = randint(50, 430)
+y_azul = 320
 
 SONIC_IMG = pygame.image.load(os.path.join('sprites', 'sonic.png'))
 SONIC_IMG = pygame.transform.scale(SONIC_IMG, (LARG_PERS,ALTU_PERS))
@@ -188,12 +188,13 @@ def main():
     objeto = Objeto(100, 200, LARG_PERS,ALTU_PERS)
 
     #anel = Objeto(x_azul, y_azul, LARG_PERS, ALTU_PERS)
+    objeto.rect.y= 305
 
 
 
     while rodar:
         clock.tick(FPS)
-        background = pygame.image.load('sprites/background_teste.png')
+        background = pygame.image.load('sprites/mapa.png')
         background = pygame.transform.scale(background,(LARGURA,ALTURA))
         mensagem = f'ANEIS: {pontos}'
         mensagem_2 = f'VIDA: {vida}'
@@ -210,11 +211,11 @@ def main():
         draw_janela(texto_formatado, texto_formatado_2, background, player, todas_as_sprites,objeto)
         
         todas_as_sprites.update()
-
+        
         if direcao == 'direita':
-            objeto.rect.x += 6
+            objeto.rect.x += 4
         else:
-            objeto.rect.x -= 6
+            objeto.rect.x -= 4
 
         if objeto.rect.x >= 600:
             direcao = 'esquerda'
@@ -226,16 +227,15 @@ def main():
             pontos += 1
             som_colisao.play()
             anelgira.rect.x = randint(40, 600)
-            anelgira.rect.y = randint(50, 500)
+            anelgira.rect.y = 305
 
         if player.rect.colliderect(objeto):
             vida -= 1
             som_colisao.play()
             objeto.rect.x = randint(40, 600)
-            objeto.rect.y = randint(50, 500)
+            objeto.rect.y = 305
             if vida <= 0:
                 pygame.quit()
-        
 
 
     pygame.quit()
