@@ -1,5 +1,6 @@
 import pygame
 import os
+import time
 from pygame.locals import *
 from random import randint
 
@@ -11,8 +12,8 @@ TITULO = 'THE FORBIDDEN GAME'
 FPS = 30
 PRETO = (0, 0, 0)
 BRANCO = (255,255,255)
-LARG_PERS = 40
-ALTU_PERS = 50
+LARG_PERS = 70
+ALTU_PERS = 70
 VEL = 10
 
 pygame.init()
@@ -21,7 +22,7 @@ JANELA = pygame.display.set_mode((LARGURA, ALTURA))
 pygame.display.set_caption(TITULO)
 
 pygame.mixer.music.set_volume(0.25)
-musica_de_fundo =  pygame.mixer.music.load('soundtrack/BoxCat.mp3')
+musica_de_fundo =  pygame.mixer.music.load('soundtrack/GreenHillZone.mp3')
 pygame.mixer.music.play(-1)
 
 som_colisao = pygame.mixer.Sound('soundtrack/smw_1-up.wav')
@@ -29,14 +30,15 @@ som_colisao.set_volume(1)
 
 x = LARGURA / 2
 y = ALTURA / 2
+
 y=305
 
-x_azul = randint(40, 600)
-y_azul = 320
+x_anel = randint(40, 600)
+y_anel = 320
 
+x_diamante = randint(40, 600)
+y_diamante = 320
 
-SONIC_IMG = pygame.image.load(os.path.join('sprites', 'sonic.png'))
-SONIC_IMG = pygame.transform.scale(SONIC_IMG, (LARG_PERS,ALTU_PERS))
 
 KNUCKLES_IMG = pygame.image.load(os.path.join('sprites', 'knuckles.png'))
 KNUCKLES_IMG = pygame.transform.flip(pygame.transform.scale(KNUCKLES_IMG, (LARG_PERS,ALTU_PERS)), True, False)
@@ -45,17 +47,47 @@ KNUCKLES_IMG = pygame.transform.flip(pygame.transform.scale(KNUCKLES_IMG, (LARG_
 class Player(pygame.sprite.Sprite):
 
     COR = (255, 0, 0)
+    GRAVIDADE = 1
     
-    SONIC_IMG = pygame.image.load(os.path.join('sprites', 'sonic.png'))
-    SPRITE = pygame.transform.scale(SONIC_IMG, (LARG_PERS,ALTU_PERS))
+    #SONIC_IMG = pygame.image.load(os.path.join('sprites', 'SONIC','SONIC 1.png'))
+    #SPRITE = pygame.transform.scale(SONIC_IMG, (LARG_PERS,ALTU_PERS))
 
+    #def __init__(self, x, y, largura, altura):
+
+        #super().__init__()
+        #self.rect = pygame.Rect(x, y, largura, altura)
+        #self.largura = largura
+        #self.altura = altura
+        #self.sprites=[]
+        #for i in range(1,16):
+            #img = pygame.image.load(f'sprites/SONIC/SONIC {i}.png')
+            #img = pygame.transform.scale(img, (self.largura, self.altura))
+            #self.sprites.append(img)
+        #self.index=0
+        #self.image = self.sprites[self.index]
+        #self.x_vel = 0
+        #self.y_vel = 0
+        #self.direcao = "esquerda"
+        #self.queda_cont = 0
+    
     def __init__(self, x, y, largura, altura):
+
         super().__init__()
         self.rect = pygame.Rect(x, y, largura, altura)
+        self.sprites=[]
+        self.largura = largura
+        self.altura = altura
+        for i in range(1,16):
+            img = pygame.image.load(f'sprites/SONIC/SONIC {i}.png')
+            img = pygame.transform.scale(img, (self.largura, self.altura))
+            self.sprites.append(img)
+        self.index=0
+        self.image=self.sprites[self.index]
         self.x_vel = 0
         self.y_vel = 0
         self.direcao = "esquerda"
-        self.animacao_cont = 0
+        self.queda_cont = 0
+        
 
     def movimento(self, dx, dy):
         self.rect.x += dx
@@ -75,24 +107,28 @@ class Player(pygame.sprite.Sprite):
 
     def cima(self, vel):
         self.y_vel = -vel
-        if self.direcao != "cima":
-            self.direcao = "cima"
-            self.animacao_cont = 0
     
-    def baixo(self, vel):
-        self.y_vel = +vel
-        if self.direcao != "baixo":
-            self.direcao = "baixo"
-            self.animacao_cont = 0
     
     def loop(self, fps):
+        self.y_vel += 8 * (min(1, (self.queda_cont / fps) * self.GRAVIDADE))
         self.movimento(self.x_vel, self.y_vel)
 
-    def draw(self, janela):
-        self.sprite = self.SPRITE
-        janela.blit(self.sprite, (self.rect.x,self.rect.y))
+        self.queda_cont += 1
 
-class Objeto(pygame.sprite.Sprite):
+    def draw(self, janela):
+        janela.blit(self.image, (self.rect.x,self.rect.y))
+
+    def update_personagem(self,keys):
+        self.index+=1
+        if self.index>=len(self.sprites):
+           self.index=0
+        self.image = self.sprites[self.index]
+        
+todos_os_sonic = pygame.sprite.Group()
+sonic=Player(x, y, 70, 70)
+todos_os_sonic.add(sonic)
+
+class Inimigo(pygame.sprite.Sprite):
 
     KNUCKLES_IMG = pygame.image.load(os.path.join('sprites', 'knuckles.png'))
     SPRITE = pygame.transform.scale(KNUCKLES_IMG, (LARG_PERS,ALTU_PERS))
@@ -102,26 +138,40 @@ class Objeto(pygame.sprite.Sprite):
         self.rect = pygame.Rect(x, y, largura, altura)
         self.largura = largura
         self.altura = altura
+        self.sprite = self.SPRITE
     
     def draw(self, janela):
-        self.sprite = self.SPRITE
         janela.blit(self.sprite, (self.rect.x,self.rect.y))
 
+    def mudar_direcao(self, direcao):
+        if direcao == "esquerda":
+            self.sprite = pygame.transform.scale(KNUCKLES_IMG, (LARG_PERS,ALTU_PERS))
+        else:
+            self.sprite = pygame.transform.flip(pygame.transform.scale(KNUCKLES_IMG, (LARG_PERS,ALTU_PERS)), True, False)
+
+class Diamante(pygame.sprite.Sprite):
+
+    DIAMANTE_IMG = pygame.image.load(os.path.join('sprites', 'diamante.png'))
+    SPRITE = pygame.transform.scale(DIAMANTE_IMG, (40,33))
+
+    def __init__(self, x, y, largura, altura):
+        pygame.sprite.Sprite.__init__(self)
+        self.rect = pygame.Rect(x, y, largura, altura)
+        self.largura = largura
+        self.altura = altura
+        self.sprite = self.SPRITE
+    
+    def draw(self, janela):
+        janela.blit(self.sprite, (self.rect.x,self.rect.y))
+
+            
 class Anel(pygame.sprite.Sprite):
 
     def __init__(self, x, y, largura, altura):
         pygame.sprite.Sprite.__init__(self)
         self.sprites = []
-        self.sprites.append(pygame.image.load('sprites/aneis/ANEL1.png'))
-        self.sprites.append(pygame.image.load('sprites/aneis/ANEL2.png'))
-        self.sprites.append(pygame.image.load('sprites/aneis/ANEL3.png'))
-        self.sprites.append(pygame.image.load('sprites/aneis/ANEL4.png'))
-        self.sprites.append(pygame.image.load('sprites/aneis/ANEL5.png'))
-        self.sprites.append(pygame.image.load('sprites/aneis/ANEL6.png'))
-        self.sprites.append(pygame.image.load('sprites/aneis/ANEL7.png'))
-        self.sprites.append(pygame.image.load('sprites/aneis/ANEL8.png'))
-        self.sprites.append(pygame.image.load('sprites/aneis/ANEL9.png'))
-        self.sprites.append(pygame.image.load('sprites/aneis/ANEL10.png'))
+        for i in range(1,11):
+            self.sprites.append(pygame.image.load(f'sprites/aneis/ANEL{i}.png'))
         self.atual = 0
         self.image = self.sprites[self.atual]
         self.rect=self.image.get_rect()
@@ -137,20 +187,22 @@ class Anel(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(self.image, (33, 33))
     
 todas_as_sprites=pygame.sprite.Group()
-anelgira=Anel(x_azul, y_azul, 40, 40)
+anelgira=Anel(x_anel, y_anel, 40, 40)
 todas_as_sprites.add(anelgira)
 
         
-def draw_janela(texto_formatado, texto_formatado_2, background, player, todas_as_sprites, objeto):
+def draw_janela(texto_formatado, texto_formatado_2, background, player, todas_as_sprites, objeto, diamante):
 
     JANELA.fill(PRETO)
     JANELA.blit(background, (0,0))
     JANELA.blit(texto_formatado, (450, 40))
     JANELA.blit(texto_formatado_2, (100, 40))
     #objeto.draw(JANELA)
-    player.draw(JANELA)
+    #player.draw(JANELA)
     todas_as_sprites.draw(JANELA)
     objeto.draw(JANELA)
+    diamante.draw(JANELA)
+    todos_os_sonic.draw(JANELA)
 
     pygame.display.update()
 
@@ -159,21 +211,16 @@ def mover(player):
 
     player.x_vel = 0
     player.y_vel = 0
+    if player.rect.y >= 305:
+        player.rect.y = 305
 
     if keys[pygame.K_a] and player.rect.x > 0:
         player.esquerda(VEL)
+        player.update()
     if keys[pygame.K_d] and player.rect.x < 600:
         player.direita(VEL)
-    if keys[pygame.K_w] and player.rect.y > 0:
-        player.cima(VEL)
-    if keys[pygame.K_s] and player.rect.y < 305:
-        player.baixo(VEL)
-
-'''def colisao(player, objeto):
-    objetos_colididos = []
-    if pygame.sprite.collide(player,objeto):
-        objetos_colididos.append(objeto)
-        return True'''
+    if keys[pygame.K_w] and player.rect.y == 305 :
+        player.cima(300)
 
 def main():
 
@@ -183,16 +230,18 @@ def main():
     vida = 3
     direcao ='direita'
 
-    fonte = pygame.font.SysFont('courier new', 20, False, False)
+    #fonte = pygame.font.SysFont('courier new', 20, False, False)
 
-    player = Player(x, y, LARG_PERS,ALTU_PERS)
+    fonte = pygame.font.Font("joystix/joystix monospace.otf", 20)
 
-    objeto = Objeto(100, 200, LARG_PERS,ALTU_PERS)
+    #sonic = Player(x, y, LARG_PERS,80)
+
+    knuckles = Inimigo(100, 200, LARG_PERS, ALTU_PERS)
 
     #anel = Objeto(x_azul, y_azul, LARG_PERS, ALTU_PERS)
-    objeto.rect.y= 305
+    knuckles.rect.y= 305
 
-
+    diamante = Diamante(x_diamante, y_diamante, 33, 33)
 
     while rodar:
         clock.tick(FPS)
@@ -200,148 +249,75 @@ def main():
         background = pygame.transform.scale(background,(LARGURA,ALTURA))
         mensagem = f'ANEIS: {pontos}'
         mensagem_2 = f'VIDA: {vida}'
-        texto_formatado = fonte.render(mensagem, False, (255, 255, 255))
-        texto_formatado_2 = fonte.render(mensagem_2, False, (255, 255, 255))
+        texto_formatado = fonte.render(mensagem, False, (216, 213, 0))
+        texto_formatado_2 = fonte.render(mensagem_2, False, (0, 0, 0))
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 rodar = False
-        player.loop(FPS)
 
-        mover(player)
+        sonic.loop(FPS)
 
-        draw_janela(texto_formatado, texto_formatado_2, background, player, todas_as_sprites,objeto)
+
+        mover(sonic)
+
+        draw_janela(texto_formatado, texto_formatado_2, background, sonic, todas_as_sprites, knuckles, diamante)
         
         todas_as_sprites.update()
+
+        keys = pygame.key.get_pressed()
+
+        todos_os_sonic.update(keys)
+
+        if diamante.rect.x == anelgira.rect.x:
+
+            diamante.rect.x = randint(40, 600)
+            anelgira.rect.x = randint(40, 600)
         
         if direcao == 'direita':
-            objeto.rect.x += 4
+            knuckles.rect.x += 7
         else:
-            objeto.rect.x -= 4
+            knuckles.rect.x -= 7
 
-        if objeto.rect.x >= 600:
-            direcao = 'esquerda'import pygame
-2
-import os
-3
-from pygame.locals import *
-4
-from random import randint
-5
-​
-6
-#constantes
-7
-​
-8
-LARGURA = 640   
-9
-ALTURA = 580
-10
-TITULO = 'THE FORBIDDEN GAME'
-11
-FPS = 30
-12
-PRETO = (0, 0, 0)
-13
-BRANCO = (255,255,255)
-14
-LARG_PERS = 40
-15
-ALTU_PERS = 50
-16
-VEL = 10
-17
-​
-18
-pygame.init()
-19
-​
-20
-JANELA = pygame.display.set_mode((LARGURA, ALTURA))
-21
-pygame.display.set_caption(TITULO)
-22
-​
-23
-pygame.mixer.music.set_volume(0.25)
-24
-musica_de_fundo =  pygame.mixer.music.load('soundtrack/BoxCat.mp3')
-25
-pygame.mixer.music.play(-1)
-26
-​
-27
-som_colisao = pygame.mixer.Sound('soundtrack/smw_1-up.wav')
-28
-som_colisao.set_volume(1)
-29
-​
-30
-x = LARGURA / 2
-31
-y = ALTURA / 2
-32
-​
-33
-x_azul = randint(40, 600)
-34
-y_azul = 320
-35
-​
-36
-SONIC_IMG = pygame.image.load(os.path.join('sprites', 'sonic.png'))
-37
-SONIC_IMG = pygame.transform.scale(SONIC_IMG, (LARG_PERS,ALTU_PERS))
-38
-​
-39
-KNUCKLES_IMG = pygame.image.load(os.path.join('sprites', 'knuckles.png'))
-40
-KNUCKLES_IMG = pygame.transform.flip(pygame.transform.scale(KNUCKLES_IMG, (LARG_PERS,ALTU_PERS)), True, False)
-41
-​
-42
-​
-43
-class Player(pygame.sprite.Sprite):
-44
-​
-45
-    COR = (255, 0, 0)
-46
-    
-47
-    SONIC_IMG = pygame.image.load(os.path.join('sprites', 'sonic.png'))
-48
-    SPRITE = pygame.transform.scale(SONIC_IMG, (LARG_PERS,ALTU_PERS))
-49
-​
-50
-    def __init__(self, x, y, largura, altura):
-51
-        super().__init__()
-52
-        self.rect = pygame.Rect(x, y, largura, altura)
-        if objeto.rect.x <= 0:
-            direcao = 'direita'
- 
+        if knuckles.rect.x >= 600:
+            direcao = 'esquerda'
+            knuckles.mudar_direcao(direcao)
 
-        if player.rect.colliderect(anelgira):
+        if knuckles.rect.x <= 0:
+            direcao  = 'direita'
+            knuckles.mudar_direcao(direcao)
+
+        if sonic.rect.colliderect(anelgira):
             pontos += 1
             som_colisao.play()
             anelgira.rect.x = randint(40, 600)
             anelgira.rect.y = 305
+            if pontos == 20:
+                pygame.quit()
 
-        if player.rect.colliderect(objeto):
+        if sonic.rect.colliderect(knuckles):
             vida -= 1
+            pontos = 0
             som_colisao.play()
-            objeto.rect.x = randint(40, 600)
-            objeto.rect.y = 305
+            if direcao == 'direita':
+                knuckles.rect.x += 130
+            else:
+                knuckles.rect.x -= 130
             if vida <= 0:
                 pygame.quit()
 
+        if sonic.rect.colliderect(diamante):
+            diamante.rect.x = 1000
+            if vida < 3:
+                vida += 1
 
+        pontos_especiais = [5,10,15]
+
+        if pontos in pontos_especiais:
+            pontos_especiais.remove(pontos)
+            diamante.rect.x = 30 * pontos
+            
+        
     pygame.quit()
 
 if __name__ == "__main__":
