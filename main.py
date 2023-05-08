@@ -205,7 +205,7 @@ anelgira=Anel(x_anel, y_anel, 40, 40)
 todas_as_sprites.add(anelgira)
 
         
-def draw_janela(texto_formatado, texto_formatado_2, background, todas_as_sprites, objeto, diamante, game_over, perdeu, vitoria, ganhou, iniciou, texto_menu):
+def draw_janela(texto_formatado, texto_formatado_2, background, todas_as_sprites, objeto, diamante, game_over, perdeu, vitoria, ganhou, iniciou, texto_menu, replay):
 
     JANELA.fill(PRETO)
     JANELA.blit(background, (0,0))
@@ -219,8 +219,10 @@ def draw_janela(texto_formatado, texto_formatado_2, background, todas_as_sprites
             todos_os_sonic.draw(JANELA)
         if perdeu:
             JANELA.blit(game_over, (18, 270))
+            JANELA.blit(replay, (80, 355))
         if ganhou:
             JANELA.blit(vitoria, (60, 270))
+            JANELA.blit(replay, (80, 355))
     else:
         img = pygame.image.load(f'sprites/Titulo.png')
         img = pygame.transform.scale(img, (350,300))
@@ -254,6 +256,7 @@ def main():
     perdeu = False
     ganhou = False
     iniciou = False
+    musica_original = True
 
     fonte = pygame.font.Font("joystix/joystix monospace.otf", 20)
     fonte2 = pygame.font.Font("joystix/joystix monospace.otf", 80)
@@ -278,6 +281,7 @@ def main():
         derrota = fonte2.render('GAME OVER', False, (255, 0, 0))
         vitoria = fonte2.render('VITÓRIA!', False, (255, 255, 0))
         mensagem_menu = fonte.render('APERTE ESPAÇO PARA COMEÇAR', False, (0, 0, 0))
+        replay = fonte.render('APERTE ESPAÇO PARA RECOMEÇAR', False, (0, 0, 0))
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -287,15 +291,22 @@ def main():
                     sonic.pular()
                 if event.key == pygame.K_SPACE:
                     iniciou = True
+                    jogando = True
                     vida = 3
                     pontos = 0
+                    perdeu = False
+                    ganhou = False
+                    if not musica_original:
+                        pygame.mixer.music.load('soundtrack/GreenHillZone.mp3')
+                        pygame.mixer.music.play(-1)
+                    
 
 
         sonic.loop(FPS)
 
         mover(sonic)
 
-        draw_janela(texto_formatado, texto_formatado_2, background, todas_as_sprites, knuckles, diamante, derrota, perdeu, vitoria, ganhou, iniciou, mensagem_menu)
+        draw_janela(texto_formatado, texto_formatado_2, background, todas_as_sprites, knuckles, diamante, derrota, perdeu, vitoria, ganhou, iniciou, mensagem_menu, replay)
         
         todas_as_sprites.update()
 
@@ -334,6 +345,7 @@ def main():
             if pontos == 20:
                 jogando = False
                 ganhou = True
+                musica_original = False
                 pygame.mixer.music.load('soundtrack/Vitoria.mp3')
                 pygame.mixer.music.play(-1)
 
@@ -349,6 +361,7 @@ def main():
             if vida <= 0:
                 jogando = False
                 perdeu = True
+                musica_original = False
                 pygame.mixer.music.load('soundtrack/GameOver.mp3')
                 pygame.mixer.music.play(-1)
 
